@@ -6,7 +6,6 @@
     <title>AI Resolution Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Marquette University Brand Colors */
         :root {
             --mu-blue: #003366;
             --mu-gold: #FFCC00;
@@ -15,7 +14,8 @@
         .bg-mu-blue { background-color: var(--mu-blue); }
         .text-mu-blue { color: var(--mu-blue); }
         .border-mu-blue { border-color: var(--mu-blue); }
-        .accent-mu-gold { accent-color: var(--mu-gold); }
+        /* Direct fix for the gold bar background */
+        .bg-mu-gold { background-color: #FFCC00 !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -23,28 +23,27 @@
     <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden border-t-8 border-mu-blue">
         
         <div class="p-6 bg-mu-blue text-white">
-            <h1 class="text-3xl font-bold italic tracking-tight">AI RESOLUTION TRACKER</h1>
+            <h1 class="text-3xl font-bold italic tracking-tight uppercase">AI Resolution Tracker</h1>
             <p class="text-blue-100 opacity-80">10-Week Completion Checklist</p>
         </div>
 
         <div class="p-6 bg-gray-50 border-b">
             <div class="flex justify-between mb-2">
-                <span class="text-sm font-bold text-mu-blue">MISSION PROGRESS</span>
+                <span class="text-sm font-bold text-mu-blue uppercase">Mission Progress</span>
                 <span id="progress-text" class="text-sm font-bold text-mu-blue">0%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-4">
-                <div id="progress-bar" class="bg-mu-gold h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div id="progress-bar" class="bg-mu-gold h-4 rounded-full transition-all duration-500" style="width: 0%; min-width: 2px;"></div>
             </div>
         </div>
 
         <form id="tracker-form" class="p-6 space-y-8">
-            
             <div id="tasks-container" class="space-y-6">
                 </div>
 
             <div class="mt-8 p-4 bg-yellow-50 border-2 border-dashed border-mu-gold rounded-lg">
                 <label class="flex items-center space-x-3 cursor-pointer">
-                    <input type="checkbox" id="bonus-task" class="w-6 h-6 accent-mu-gold rounded">
+                    <input type="checkbox" id="bonus-task" class="w-6 h-6 rounded border-gray-300">
                     <span class="font-bold text-mu-blue uppercase tracking-wide">Bonus: Agent Evaluation Gauntlet</span>
                 </label>
             </div>
@@ -72,12 +71,11 @@
 
         const container = document.getElementById('tasks-container');
 
-        // Render Tasks
         tasks.forEach(task => {
-            const taskHtml = `
+            container.insertAdjacentHTML('beforeend', `
                 <div class="border-l-4 border-mu-blue pl-4 py-2">
                     <div class="flex items-start space-x-4">
-                        <input type="checkbox" id="check-${task.id}" data-id="${task.id}" class="task-check mt-1 w-6 h-6 accent-mu-gold rounded cursor-pointer">
+                        <input type="checkbox" id="check-${task.id}" data-id="${task.id}" class="task-check mt-1 w-6 h-6 rounded border-gray-300 cursor-pointer">
                         <div class="flex-1">
                             <label for="check-${task.id}" class="font-bold text-lg text-mu-blue cursor-pointer uppercase">${task.title}</label>
                             <p class="text-sm text-gray-600 mb-2">${task.sub}</p>
@@ -85,16 +83,13 @@
                         </div>
                     </div>
                 </div>
-            `;
-            container.insertAdjacentHTML('beforeend', taskHtml);
+            `);
         });
 
-        // Local Storage & Progress Logic
         const updateUI = () => {
             const checkboxes = document.querySelectorAll('.task-check, #bonus-task');
-            const total = checkboxes.length;
             const checked = document.querySelectorAll('.task-check:checked, #bonus-task:checked').length;
-            const percentage = Math.round((checked / total) * 100);
+            const percentage = Math.round((checked / checkboxes.length) * 100);
             
             document.getElementById('progress-bar').style.width = percentage + '%';
             document.getElementById('progress-text').innerText = percentage + '%';
@@ -116,14 +111,12 @@
             const saved = localStorage.getItem('aiResolutionData');
             if (!saved) return;
             const data = JSON.parse(saved);
-            
             document.getElementById('bonus-task').checked = data.bonus || false;
             document.querySelectorAll('.task-check').forEach(c => c.checked = data.checks[c.dataset.id] || false);
             document.querySelectorAll('.task-note').forEach(n => n.value = data.notes[n.dataset.id] || "");
             updateUI();
         };
 
-        // Event Listeners
         document.addEventListener('input', saveData);
         window.onload = loadData;
     </script>
