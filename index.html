@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resolution Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Marquette University Brand Colors */
+        :root {
+            --mu-blue: #003366;
+            --mu-gold: #FFCC00;
+        }
+        body { background-color: #f8f9fa; }
+        .bg-mu-blue { background-color: var(--mu-blue); }
+        .text-mu-blue { color: var(--mu-blue); }
+        .border-mu-blue { border-color: var(--mu-blue); }
+        .accent-mu-gold { accent-color: var(--mu-gold); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden border-t-8 border-mu-blue">
+        
+        <div class="p-6 bg-mu-blue text-white">
+            <h1 class="text-3xl font-bold italic tracking-tight">AI RESOLUTION TRACKER</h1>
+            <p class="text-blue-100 opacity-80">10-Week Completion Checklist</p>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-b">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm font-bold text-mu-blue">MISSION PROGRESS</span>
+                <span id="progress-text" class="text-sm font-bold text-mu-blue">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div id="progress-bar" class="bg-mu-gold h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <form id="tracker-form" class="p-6 space-y-8">
+            
+            <div id="tasks-container" class="space-y-6">
+                </div>
+
+            <div class="mt-8 p-4 bg-yellow-50 border-2 border-dashed border-mu-gold rounded-lg">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="bonus-task" class="w-6 h-6 accent-mu-gold rounded">
+                    <span class="font-bold text-mu-blue uppercase tracking-wide">Bonus: Agent Evaluation Gauntlet</span>
+                </label>
+            </div>
+        </form>
+
+        <footer class="p-6 bg-gray-100 text-center text-xs text-gray-500 italic">
+            Data is saved automatically to your browser's local storage.
+        </footer>
+    </div>
+
+    <script>
+        const tasks = [
+            { id: 0, title: "Day 0: Setup Complete", sub: "Folders, accounts, rubric saved" },
+            { id: 1, title: "Weekend 1: Resolution Tracker", sub: "Built, live, and logged" },
+            { id: 2, title: "Weekend 2: Model Topography", sub: "Topography Sheet + Rules of Thumb" },
+            { id: 3, title: "Weekend 3: Deep Research Brief", sub: "2 pages, clear recommendation" },
+            { id: 4, title: "Weekend 4: Data Analysis Memo", sub: "Cleaned data, 3 insights, 3 actions" },
+            { id: 5, title: "Weekend 5: Visual Explainer", sub: "One infographic you'd actually use" },
+            { id: 6, title: "Weekend 6: Information Pipeline", sub: "Summary + FAQ + Deck from source" },
+            { id: 7, title: "Weekend 7: First Automation", sub: "Content workflow working" },
+            { id: 8, title: "Weekend 8: Second Automation", sub: "Productivity workflow working" },
+            { id: 9, title: "Weekend 9: Personal Context OS", sub: "Context Docs + Capture system" },
+            { id: 10, title: "Weekend 10: AI-Powered Build", sub: "Chatbot/Agent deployed" }
+        ];
+
+        const container = document.getElementById('tasks-container');
+
+        // Render Tasks
+        tasks.forEach(task => {
+            const taskHtml = `
+                <div class="border-l-4 border-mu-blue pl-4 py-2">
+                    <div class="flex items-start space-x-4">
+                        <input type="checkbox" id="check-${task.id}" data-id="${task.id}" class="task-check mt-1 w-6 h-6 accent-mu-gold rounded cursor-pointer">
+                        <div class="flex-1">
+                            <label for="check-${task.id}" class="font-bold text-lg text-mu-blue cursor-pointer uppercase">${task.title}</label>
+                            <p class="text-sm text-gray-600 mb-2">${task.sub}</p>
+                            <textarea id="note-${task.id}" data-id="${task.id}" class="task-note w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-mu-blue outline-none transition" placeholder="Add notes for this milestone..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', taskHtml);
+        });
+
+        // Local Storage & Progress Logic
+        const updateUI = () => {
+            const checkboxes = document.querySelectorAll('.task-check, #bonus-task');
+            const total = checkboxes.length;
+            const checked = document.querySelectorAll('.task-check:checked, #bonus-task:checked').length;
+            const percentage = Math.round((checked / total) * 100);
+            
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            document.getElementById('progress-text').innerText = percentage + '%';
+        };
+
+        const saveData = () => {
+            const data = {
+                checks: {},
+                notes: {},
+                bonus: document.getElementById('bonus-task').checked
+            };
+            document.querySelectorAll('.task-check').forEach(c => data.checks[c.dataset.id] = c.checked);
+            document.querySelectorAll('.task-note').forEach(n => data.notes[n.dataset.id] = n.value);
+            localStorage.setItem('aiResolutionData', JSON.stringify(data));
+            updateUI();
+        };
+
+        const loadData = () => {
+            const saved = localStorage.getItem('aiResolutionData');
+            if (!saved) return;
+            const data = JSON.parse(saved);
+            
+            document.getElementById('bonus-task').checked = data.bonus || false;
+            document.querySelectorAll('.task-check').forEach(c => c.checked = data.checks[c.dataset.id] || false);
+            document.querySelectorAll('.task-note').forEach(n => n.value = data.notes[n.dataset.id] || "");
+            updateUI();
+        };
+
+        // Event Listeners
+        document.addEventListener('input', saveData);
+        window.onload = loadData;
+    </script>
+</body>
+</html>
